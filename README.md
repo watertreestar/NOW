@@ -118,7 +118,7 @@ public class CountNumTask implements Runnable{
 
 使用线程池可以带来效率的提高，同时减少了创建线程带来的消耗。不过引入了新的问题，就是线程间的同步，这里的静态变量`countResult`会造成
 统计的结果比实际结果小
-![](/img/使用多线程.png)
+![](/img/使用线程池.png)
 
 线程间的同步有很多种手段：
 - 使用sychronized关键字
