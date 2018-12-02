@@ -1,19 +1,23 @@
-# NOW-统计文字数量
+/**
+ * 
+ */
+package com.ranger.now.thread;
 
-## 先使用单线程统计
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicLong;
 
-要实现文字统计，我们需要做以下的事情：
+import com.ranger.now.filter.FilterProcessManager;
 
-- 读取某个文件夹下所有的文件，保存文件路径
-- 遍历每个文件，加载文件内容，记录文本数字
-
-我们需要过滤掉空格，换行，超链接等，这里没有做详细的过滤
-![](/img/使用单线程.png)
-
-## 使用多线程统计-线程池
-
-先看一下统计字数线程的代码
-```java
+/**
+ * @author Ranger
+ *
+ */
 public class CountNumTask implements Runnable{
 
 	private String file ;
@@ -23,6 +27,8 @@ public class CountNumTask implements Runnable{
 	 * 统计结果
 	 */
 	private static long countResult = 0;
+	
+	private static AtomicLong result = new AtomicLong();
 	
 	
 	
@@ -68,6 +74,8 @@ public class CountNumTask implements Runnable{
 				 msg = scanner.nextLine();
 				 msg = processManager.doProcess(msg);
 				 countResult += msg.length();
+				 // 使用原子变量
+				 result.addAndGet(msg.length());
 			}
 			
 		}else if(files != null && file == null) {
@@ -89,6 +97,8 @@ public class CountNumTask implements Runnable{
 					 msg = scanner.nextLine();
 					 msg = processManager.doProcess(msg);
 					 countResult += msg.length();
+					// 使用原子变量
+					 result.addAndGet(msg.length());
 				}
 				try {
 					Thread.sleep(300);
@@ -112,20 +122,8 @@ public class CountNumTask implements Runnable{
 		return countResult;
 	}
 	
+	public static long getAtomicResult() {
+		return result.get();
+	}
+	
 }
-
-```
-
-使用线程池可以带来效率的提高，同时减少了创建线程带来的消耗。不过引入了新的问题，就是线程间的同步，这里的静态变量`countResult`会造成
-统计的结果比实际结果小
-![](/img/使用多线程.png)
-
-线程间的同步有很多种手段：
-- 使用sychronized关键字
-- 使用Lock锁
-- 使用原子变量 
-
-这里我们简单使用原子变量AtomicLong来实现同步
-
-最后可以看到，单线程统计的结果和使用线程池的结果一样
-
